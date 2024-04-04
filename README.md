@@ -7,4 +7,4 @@
 #### run setup command : 
     cd avail-light && chmod ug+x *.sh && ./setup.sh
 #### follow the instruction and then run below command to start the node :
-    ./start_avail.sh && tail -f avail.log
+    ./start_avail.sh && ./check_log.sh

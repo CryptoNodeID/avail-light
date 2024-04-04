@@ -1,4 +1,6 @@
 #!/bin/bash
+INSTALLATION_DIR=$(dirname "$(realpath "$0")")
+
 wget https://github.com/availproject/avail-light/releases/download/v1.7.10/avail-light-linux-amd64.tar.gz
 tar -xvzf avail-light-linux-amd64.tar.gz
 rm avail-light-linux-amd64.tar.gz
@@ -21,7 +23,7 @@ port = 37000
 full_node_ws = ["ws://127.0.0.1:9944"]
 app_id = 0
 confidence = 92.0
-avail_path = "avail_path"
+avail_path = "${INSTALLATION_DIR}/avail_path"
 bootstraps = ["/ip4/127.0.0.1/tcp/39000/p2p/12D3KooWMm1c4pzeLPGkkCJMAgFbsfQ8xmVDusg272icWsaNHWzN"]
 ot_collector_endpoint = "http://127.0.0.1:4317"
 EOF
@@ -39,19 +41,38 @@ if [[ "$use_custom_port" =~ ^[Yy](es)?$ ]]; then
     echo "port_prefix: ${port_prefix}"
 fi
 
+sudo tee /etc/systemd/system/avail-light.service > /dev/null <<EOF
+[Unit]
+Description=Avail Light
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+User=$USER
+ExecStart=${INSTALLATION_DIR}/avail-light --network=goldberg --identity=${INSTALLATION_DIR}/identity.toml --config=${INSTALLATION_DIR}/config.yaml
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
+
 tee start_avail.sh > /dev/null <<EOF
 #!/bin/bash
-nohup ./avail-light --network=goldberg --identity=identity.toml --config=config.yaml > avail.log 2>&1 &
+sudo systemctl daemon-reload
+sudo systemctl enable avail-light
+sudo systemctl restart avail-light
 EOF
 chmod +x start_avail.sh
 
-sudo tee /etc/logrotate.d/avail-light > /dev/null <<EOF
-${HOME}/avail-light/avail.log {
-    rotate 7
-    daily
-    missingok
-    compress
-    delaycompress
-    notifempty
-}
+tee stop_avail.sh > /dev/null <<EOF
+#!/bin/bash
+sudo systemctl stop avail-light
 EOF
+chmod +x stop_avail.sh
+
+tee check_log.sh > /dev/null <<EOF
+#!/bin/bash
+sudo journalctl -u avail-light -f
+EOF
+chmod +x check_log.sh
