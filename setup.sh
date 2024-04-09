@@ -20,11 +20,11 @@ http_server_port = 7000
 secret_key = { seed = "avail" }
 port = 37000
 
-full_node_ws = ["ws://127.0.0.1:9944"]
 app_id = 0
 confidence = 92.0
 avail_path = "${INSTALLATION_DIR}/avail_path"
-bootstraps = ["/ip4/127.0.0.1/tcp/39000/p2p/12D3KooWMm1c4pzeLPGkkCJMAgFbsfQ8xmVDusg272icWsaNHWzN"]
+bootstraps = ['/dns/bootnode.2.lightclient.goldberg.avail.tools/tcp/37000/p2p/12D3KooWRCgfvaLSnQfkwGehrhSNpY7i5RenWKL2ARst6ZqgdZZd','/dns/bootnode.1.lightclient.goldberg.avail.tools/tcp/37000/p2p/12D3KooWBkLsNGaD3SpMaRWtAmWVuiZg1afdNSPbtJ8M8r9ArGRT']
+full_node_ws = ['wss://avail-goldberg-rpc.lgns.xyz:443/ws','wss://rpc-goldberg.sandbox.avail.tools:443','wss://avail-goldberg.public.blastapi.io:443','wss://lc-rpc-goldberg.avail.tools:443/ws']
 ot_collector_endpoint = "http://127.0.0.1:4317"
 EOF
 
@@ -36,7 +36,6 @@ if [[ "$use_custom_port" =~ ^[Yy](es)?$ ]]; then
     done
     sed -i.bak -e "s/port = 37000/port = ${port_prefix}700/" \
             -e "s/port = 7000/port = ${port_prefix}000/" \
-            -e "s/full_node_ws = \[\"ws:\/\/127.0.0.1:9944\"\]/full_node_ws = [\"ws:\/\/127.0.0.1:${port_prefix}944\"]/" \
             -e "s/ot_collector_endpoint = \"http:\/\/127.0.0.1:4317\"/ot_collector_endpoint = \"http:\/\/127.0.0.1:${port_prefix}317\"/" config.yaml
     echo "port_prefix: ${port_prefix}"
 fi
@@ -49,7 +48,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 User=$USER
-ExecStart=${INSTALLATION_DIR}/avail-light --network=goldberg --identity=${INSTALLATION_DIR}/identity.toml --config=${INSTALLATION_DIR}/config.yaml
+ExecStart=${INSTALLATION_DIR}/avail-light --identity=${INSTALLATION_DIR}/identity.toml --config=${INSTALLATION_DIR}/config.yaml
 Restart=always
 RestartSec=3
 LimitNOFILE=65535
